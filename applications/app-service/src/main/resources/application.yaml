@@ -1,0 +1,35 @@
+server:
+  port: 8081
+
+spring:
+  application:
+    name: "Application"
+  # opcional si quieres inicializar scripts .sql al arrancar
+  sql:
+    init:
+      mode: always
+
+  devtools:
+    add-properties: false
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: "health,prometheus"
+  endpoint:
+    health:
+      probes:
+        enabled: true
+
+cors:
+  allowed-origins: "http://localhost:4200,http://localhost:8080"
+
+adapter:
+  r2dbc:
+    host: "localhost"
+    port: 5432
+    database: "solicitudes_db"
+    schema: "public"
+    username: postgres
+    password: postgres
