@@ -18,3 +18,4 @@ public class Application {
     private Long idTipoPrestamo;
 
 }
+
