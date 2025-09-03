@@ -10,11 +10,14 @@ import org.springframework.data.relational.core.mapping.Table;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class EstadoEntity {
+public class StateEntity {
     @Id
     @Column("id_estado")
-    private Long idEstado;
+    private Long stateId;
 
-    private String nombre;
-    private String descripcion;
+    @Column("nombre")
+    private String name;
+
+    @Column("descripcion")
+    private String description;
 }

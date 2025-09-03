@@ -8,10 +8,8 @@ import co.com.crediya.model.application.gateways.StateRepository;
 import lombok.RequiredArgsConstructor;
 import reactor.core.publisher.Mono;
 
-
 @RequiredArgsConstructor
 public class RegisterApplicationUseCase {
-
 
     private final ApplicationRepository applicationRepository;
     private final LoanTypeRepository loanTypeRepository;
@@ -19,27 +17,26 @@ public class RegisterApplicationUseCase {
     private final IdentityGateway identityGateway;
 
     public Mono<Application> create(Application application) {
-        return identityGateway.existsByDocument(application.getDocumento())
+        return identityGateway.existsByDocument(application.getDocument())
                 .flatMap(exists -> {
                     if (!exists) {
-                        return Mono.error(new IllegalArgumentException("documento: Cliente no existe"));
+                        return Mono.error(new IllegalArgumentException("document: Client does not exist"));
                     }
-                    return loanTypeRepository.findById(application.getIdTipoPrestamo())
-                            .switchIfEmpty(Mono.error(new IllegalArgumentException("tipoPrestamo: Tipo de préstamo no existe")))
-                            .flatMap(tipo -> {
-                                if (application.getMonto() < tipo.getMontoMinimo() || application.getMonto() > tipo.getMontoMaximo()) {
-                                    return Mono.error(new IllegalArgumentException("monto: Monto fuera de rango permitido"));
+                    return loanTypeRepository.findById(application.getLoanTypeId())
+                            .switchIfEmpty(Mono.error(new IllegalArgumentException("loanType: Loan type not found")))
+                            .flatMap(loanType -> {
+                                if (application.getAmount() < loanType.getMinAmount() ||
+                                        application.getAmount() > loanType.getMaxAmount()) {
+                                    return Mono.error(new IllegalArgumentException("amount: Amount out of allowed range"));
                                 }
                                 return stateRepository.findById(1L)
-                                        .switchIfEmpty(Mono.error(new IllegalArgumentException("estado: Estado inicial no encontrado")))
-                                        .map(estado -> {
-                                            application.setIdEstado(estado.getIdEstado());
+                                        .switchIfEmpty(Mono.error(new IllegalArgumentException("state: Initial state not found")))
+                                        .map(state -> {
+                                            application.setStateId(state.getStateId());
                                             return application;
                                         });
                             })
                             .flatMap(applicationRepository::save);
                 });
     }
-
 }
-

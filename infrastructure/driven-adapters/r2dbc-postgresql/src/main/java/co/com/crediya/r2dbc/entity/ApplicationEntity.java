@@ -12,21 +12,24 @@ import java.time.LocalDateTime;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class SolicitudEntity {
+public class ApplicationEntity {
     @Id
     @Column("id_solicitud")
-    private Long idSolicitud;
+    private Long applicationId;
 
-    private Double monto;
-    private Integer plazo;
-    private String documento;
+    @Column("monto")
+    private Double amount;
+
+    @Column("plazo")
+    private Integer term;
+
+    @Column("documento")
+    private String document;
 
     @Column("id_estado")
-    private Long idEstado;
+    private Long stateId;
 
     @Column("id_tipo_prestamo")
-    private Long idTipoPrestamo;
+    private Long loanTypeId;
 
-    @Column("fecha_creacion")
-    private LocalDateTime fechaCreacion;
 }
