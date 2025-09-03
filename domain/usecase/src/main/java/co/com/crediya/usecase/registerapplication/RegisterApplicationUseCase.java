@@ -1,6 +1,7 @@
 package co.com.crediya.usecase.registerapplication;
 
 import co.com.crediya.model.application.Application;
+import co.com.crediya.model.application.exeption.LoanDomainValidator;
 import co.com.crediya.model.application.gateways.ApplicationRepository;
 import co.com.crediya.model.application.gateways.IdentityGateway;
 import co.com.crediya.model.application.gateways.LoanTypeRepository;
@@ -25,9 +26,10 @@ public class RegisterApplicationUseCase {
                     return loanTypeRepository.findById(application.getLoanTypeId())
                             .switchIfEmpty(Mono.error(new IllegalArgumentException("loanType: Loan type not found")))
                             .flatMap(loanType -> {
-                                if (application.getAmount() < loanType.getMinAmount() ||
-                                        application.getAmount() > loanType.getMaxAmount()) {
-                                    return Mono.error(new IllegalArgumentException("amount: Amount out of allowed range"));
+                                try {
+                                    LoanDomainValidator.validate(application, loanType);
+                                } catch (IllegalArgumentException ex) {
+                                    return Mono.error(ex);
                                 }
                                 return stateRepository.findById(1L)
                                         .switchIfEmpty(Mono.error(new IllegalArgumentException("state: Initial state not found")))
@@ -39,4 +41,5 @@ public class RegisterApplicationUseCase {
                             .flatMap(applicationRepository::save);
                 });
     }
+
 }
