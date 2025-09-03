@@ -10,12 +10,10 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 public class Application {
-    private Long idSolicitud;
-    private Double monto;
-    private Integer plazo;
-    private String documento;
-    private Long idEstado;
-    private Long idTipoPrestamo;
-
+    private Long applicationId;
+    private Double amount;
+    private Integer term;
+    private String document;
+    private Long stateId;
+    private Long loanTypeId;
 }
-

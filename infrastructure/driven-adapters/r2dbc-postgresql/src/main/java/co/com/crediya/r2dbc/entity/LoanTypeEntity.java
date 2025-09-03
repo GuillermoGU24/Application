@@ -10,22 +10,23 @@ import org.springframework.data.relational.core.mapping.Table;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class TipoPrestamoEntity {
+public class LoanTypeEntity {
     @Id
     @Column("id_tipo_prestamo")
-    private Long idTipoPrestamo;
+    private Long loanTypeId;
 
-    private String nombre;
+    @Column("nombre")
+    private String name;
 
     @Column("monto_minimo")
-    private Double montoMinimo;
+    private Double minAmount;
 
     @Column("monto_maximo")
-    private Double montoMaximo;
+    private Double maxAmount;
 
     @Column("tasa_interes")
-    private Double tasaInteres;
+    private Double interestRate;
 
     @Column("validacion_automatica")
-    private Boolean validacionAutomatica;
+    private Boolean autoValidation;
 }
