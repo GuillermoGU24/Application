@@ -1,6 +1,5 @@
 package co.com.crediya.model.application;
 
-
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -11,9 +10,7 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 public class State {
-    private Long idEstado;
-    private String nombre;
-    private String descripcion;
+    private Long stateId;
+    private String name;
+    private String description;
 }
-
-

@@ -6,7 +6,6 @@ import org.springframework.stereotype.Repository;
 import org.springframework.web.reactive.function.client.WebClient;
 import reactor.core.publisher.Mono;
 
-
 @Slf4j
 @Repository
 public class IdentityGatewayWebClient implements IdentityGateway {
@@ -18,19 +17,21 @@ public class IdentityGatewayWebClient implements IdentityGateway {
     }
 
     @Override
-    public Mono<Boolean> existsByDocument(String document) {
-        log.info("Validando cliente por documento {}", document);
+    public Mono<Boolean> existsByDocument(String document, String bearerToken) {
+        log.info("Validating client by document {}", document);
 
         return authWebClient.get()
                 .uri("/api/v1/usuarios/document/{document}", document)
+                .header("Authorization", bearerToken)
                 .retrieve()
                 .onStatus(status -> status.is4xxClientError(),
-                        resp -> Mono.error(new IllegalArgumentException("cliente: Cliente no encontrado")))
+                        resp -> resp.bodyToMono(String.class)
+                                .flatMap(body -> Mono.error(new IllegalArgumentException(body))))
                 .onStatus(status -> status.is5xxServerError(),
-                        resp -> Mono.error(new IllegalStateException("cliente: Error en servicio de autenticación")))
+                        resp -> Mono.error(new IllegalStateException("client: Authentication service error")))
                 .bodyToMono(Object.class)
-                .doOnNext(u -> log.info("Cliente validado: {}", document))
-                .map(u -> true)  // Convert to Boolean since method should return Mono<Boolean>
-                .onErrorReturn(IllegalArgumentException.class, false); // Return false if client not found
+                .doOnNext(u -> log.info("Client validated: {}", document))
+                .map(u -> true);
     }
+
 }
