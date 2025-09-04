@@ -12,7 +12,7 @@ public class WebClientConfig {
     @Bean
     public WebClient authWebClient(WebClient.Builder builder) {
         return builder
-                .baseUrl("http://localhost:8080") // <- cambia por tu host de autenticación
+                .baseUrl("http://localhost:8080")
                 .defaultHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
                 .build();
     }

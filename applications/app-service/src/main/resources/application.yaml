@@ -4,7 +4,7 @@ server:
 spring:
   application:
     name: "Application"
-  # opcional si quieres inicializar scripts .sql al arrancar
+
   sql:
     init:
       mode: always

@@ -10,7 +10,7 @@ import org.mapstruct.Mapping;
 @Mapper(componentModel = "spring")
 public interface ApplicationMapper {
 
-    @Mapping(target = "applicationId", ignore = true) // before: idSolicitud
+    @Mapping(target = "applicationId", ignore = true)
     @Mapping(target = "stateId", ignore = true)
     Application toDomain(ApplicationRequest request);
 
