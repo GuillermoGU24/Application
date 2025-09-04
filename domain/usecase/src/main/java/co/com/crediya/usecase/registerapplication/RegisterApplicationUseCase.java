@@ -25,20 +25,15 @@ public class RegisterApplicationUseCase {
                     }
                     return loanTypeRepository.findById(application.getLoanTypeId())
                             .switchIfEmpty(Mono.error(new IllegalArgumentException("loanType: Loan type not found")))
-                            .flatMap(loanType -> {
-                                try {
-                                    LoanDomainValidator.validate(application, loanType);
-                                } catch (IllegalArgumentException ex) {
-                                    return Mono.error(ex);
-                                }
-                                return stateRepository.findById(1L)
-                                        .switchIfEmpty(Mono.error(new IllegalArgumentException("state: Initial state not found")))
-                                        .map(state -> {
-                                            application.setStateId(state.getStateId());
-                                            return application;
-                                        });
-                            })
+                            .doOnNext(loanType -> LoanDomainValidator.validate(application, loanType))
+                            .flatMap(loanType -> stateRepository.findById(1L)
+                                    .switchIfEmpty(Mono.error(new IllegalArgumentException("state: Initial state not found")))
+                                    .map(state -> {
+                                        application.setStateId(state.getStateId());
+                                        return application;
+                                    }))
                             .flatMap(applicationRepository::save);
+
                 });
     }
 
