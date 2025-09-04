@@ -17,8 +17,8 @@ public class RegisterApplicationUseCase {
     private final StateRepository stateRepository;
     private final IdentityGateway identityGateway;
 
-    public Mono<Application> create(Application application) {
-        return identityGateway.existsByDocument(application.getDocument())
+    public Mono<Application> create(Application application, String bearerToken) {
+        return identityGateway.existsByDocument(application.getDocument(), bearerToken)
                 .flatMap(exists -> {
                     if (!exists) {
                         return Mono.error(new IllegalArgumentException("document: Client does not exist"));
@@ -33,7 +33,6 @@ public class RegisterApplicationUseCase {
                                         return application;
                                     }))
                             .flatMap(applicationRepository::save);
-
                 });
     }
 
