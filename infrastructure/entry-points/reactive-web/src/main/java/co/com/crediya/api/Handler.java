@@ -26,10 +26,12 @@ public class Handler {
     private final Validator validator;
 
     public Mono<ServerResponse> register(ServerRequest request) {
+        String bearerToken = request.headers().firstHeader("Authorization");
+
         return request.bodyToMono(ApplicationRequest.class)
-                .flatMap(req -> ValidationUtil.validate(req, validator)) // validate DTO
+                .flatMap(req -> ValidationUtil.validate(req, validator))
                 .map(applicationMapper::toDomain)
-                .flatMap(registerApplicationUseCase::create)
+                .flatMap(app -> registerApplicationUseCase.create(app, bearerToken))
                 .map(applicationMapper::toResponse)
                 .flatMap(saved -> ServerResponse.status(HttpStatus.CREATED)
                         .contentType(MediaType.APPLICATION_JSON)
@@ -38,4 +40,5 @@ public class Handler {
                                 "message", "Application created successfully"
                         )));
     }
+
 }

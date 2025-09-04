@@ -1,4 +1,4 @@
-package co.com.crediya.exception;
+package co.com.crediya.api.exception;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -56,11 +56,46 @@ public class GlobalExceptionHandler implements WebExceptionHandler {
         if (ex instanceof R2dbcDataIntegrityViolationException rdv) {
             return handleDuplicateKey(exchange, new org.springframework.dao.DuplicateKeyException(rdv.getMessage()));
         }
-
+        if (ex instanceof IllegalStateException) {
+            return handleIllegalState(exchange, (IllegalStateException) ex);
+        }
         log.error("Unhandled exception: ", ex);
         return writeErrorResponse(exchange, HttpStatus.INTERNAL_SERVER_ERROR,
                 Map.of("status", 500, "error", "Internal Server Error"));
     }
+
+    private Mono<Void> handleIllegalState(ServerWebExchange exchange, IllegalStateException ex) {
+        log.error("Illegal state error: {}", ex.getMessage());
+
+        String field = "general";
+        String message = ex.getMessage();
+
+        if (message != null && message.contains(":")) {
+            String[] parts = message.split(":", 2);
+            field = parts[0].trim();
+            message = parts[1].trim();
+        }
+
+        HttpStatus status;
+        switch (field) {
+            case "authorization" -> status = HttpStatus.UNAUTHORIZED; // 401
+            case "forbidden" -> status = HttpStatus.FORBIDDEN;       // 403
+            case "client" -> status = HttpStatus.INTERNAL_SERVER_ERROR; // 500
+            default -> status = HttpStatus.BAD_REQUEST;
+        }
+
+        Map<String, Object> errorResponse = Map.of(
+                "status", status.value(),
+                "error", "Upstream service error",
+                "details", List.of(Map.of(
+                        "field", field,
+                        "message", message
+                ))
+        );
+
+        return writeErrorResponse(exchange, status, errorResponse);
+    }
+
 
     private Mono<Void> handleConstraintViolation(ServerWebExchange exchange, ConstraintViolationException ex) {
         log.error("Constraint validation error: {}", ex.getMessage());
@@ -129,16 +164,31 @@ public class GlobalExceptionHandler implements WebExceptionHandler {
     private Mono<Void> handleIllegalArgument(ServerWebExchange exchange, IllegalArgumentException ex) {
         log.error("Illegal argument error: {}", ex.getMessage());
 
-        String field = "general";
         String message = ex.getMessage();
 
+        Map<String, Object> errorResponse;
+
+        // Si el mensaje empieza con { y contiene "status", asumimos que ya es JSON de otro micro
+        if (message != null && message.trim().startsWith("{") && message.contains("\"status\"")) {
+            try {
+                // Parsear el JSON original y devolverlo tal cual
+                errorResponse = objectMapper.readValue(message, Map.class);
+                return writeErrorResponse(exchange, HttpStatus.valueOf((Integer) errorResponse.get("status")), errorResponse);
+            } catch (Exception parseEx) {
+                log.error("Error parsing forwarded JSON error", parseEx);
+                // fallback a formato estándar
+            }
+        }
+
+        // comportamiento original (tu formato de Domain validation failed)
+        String field = "general";
         if (message != null && message.contains(":")) {
             String[] parts = message.split(":", 2);
             field = parts[0].trim();
             message = parts[1].trim();
         }
 
-        Map<String, Object> errorResponse = Map.of(
+        errorResponse = Map.of(
                 "status", HttpStatus.BAD_REQUEST.value(),
                 "error", "Domain validation failed",
                 "details", List.of(Map.of(
