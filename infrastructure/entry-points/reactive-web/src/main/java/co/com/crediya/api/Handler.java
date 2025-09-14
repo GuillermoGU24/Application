@@ -27,11 +27,13 @@ public class Handler {
 
     public Mono<ServerResponse> register(ServerRequest request) {
         String bearerToken = request.headers().firstHeader("Authorization");
-
+        if (bearerToken == null || !bearerToken.startsWith("Bearer ")) {
+            return ServerResponse.status(HttpStatus.UNAUTHORIZED).build();
+        }
         return request.bodyToMono(ApplicationRequest.class)
                 .flatMap(req -> ValidationUtil.validate(req, validator))
                 .map(applicationMapper::toDomain)
-                .flatMap(app -> registerApplicationUseCase.create(app, bearerToken))
+                .flatMap(app -> registerApplicationUseCase.register(app, bearerToken))
                 .map(applicationMapper::toResponse)
                 .flatMap(saved -> ServerResponse.status(HttpStatus.CREATED)
                         .contentType(MediaType.APPLICATION_JSON)
