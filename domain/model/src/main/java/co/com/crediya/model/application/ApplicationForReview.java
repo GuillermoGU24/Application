@@ -16,4 +16,6 @@ public class ApplicationForReview {
     private Double tasaInteres;
     private String estadoSolicitud;
     private Long salarioBase;
+    private Double montoMensualSolicitud; // <--- nuevo
 }
+

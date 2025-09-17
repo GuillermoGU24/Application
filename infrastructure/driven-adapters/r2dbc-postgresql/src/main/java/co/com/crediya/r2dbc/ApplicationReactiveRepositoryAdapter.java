@@ -55,21 +55,39 @@ public class ApplicationReactiveRepositoryAdapter
         int limit = size;
         long offset = (long) page * size;
 
-        return reactiveRepository.findByStatesPaged(estados, limit, offset)
-                .map(row -> ApplicationForReview.builder()
-                        .applicationId(((Number) row.get("id_solicitud")).longValue())
-                        .monto(((Number) row.get("monto")).doubleValue())
-                        .plazo(((Number) row.get("plazo")).intValue())
-                        .documento((String) row.get("documento"))
-                        .tipoPrestamo((String) row.get("tipo_nombre"))
-                        .tasaInteres(row.get("tasa_interes") != null ? ((Number) row.get("tasa_interes")).doubleValue() : null)
-                        .estadoSolicitud((String) row.get("estado_nombre"))
-                        .build());
+        String sql = """
+        SELECT s.id_solicitud, s.monto, s.plazo, s.documento,
+               t.nombre as tipo_nombre, t.tasa_interes,
+               e.nombre as estado_nombre
+        FROM solicitud s
+        LEFT JOIN tipo_prestamo t ON t.id_tipo_prestamo = s.id_tipo_prestamo
+        LEFT JOIN estados e ON e.id_estado = s.id_estado
+        WHERE e.nombre = ANY(:estados)
+        ORDER BY s.id_solicitud DESC
+        LIMIT :limit OFFSET :offset
+        """;
+
+        return databaseClient.sql(sql)
+                .bind("estados", estados.toArray(new String[0]))
+                .bind("limit", limit)
+                .bind("offset", offset)
+                .map((row, meta) -> ApplicationForReview.builder()
+                        .applicationId(row.get("id_solicitud", Long.class))
+                        .monto(row.get("monto", Double.class))
+                        .plazo(row.get("plazo", Integer.class))
+                        .documento(row.get("documento", String.class))
+                        .tipoPrestamo(row.get("tipo_nombre", String.class))
+                        .tasaInteres(row.get("tasa_interes", Double.class))
+                        .estadoSolicitud(row.get("estado_nombre", String.class))
+                        .build()
+                )
+                .all();
     }
 
     @Override
     public Mono<Long> countForReview(List<String> estados) {
-        return reactiveRepository.countByStates(estados);
+        String[] estadosArray = estados.toArray(new String[0]);
+        return reactiveRepository.countByStates(estadosArray);
     }
 
     @Override

@@ -5,6 +5,7 @@ import co.com.crediya.api.dto.ApplicationRequest;
 import co.com.crediya.api.dto.PagedResponse;
 import co.com.crediya.api.mapper.ApplicationMapper;
 import co.com.crediya.api.util.ValidationUtil;
+import co.com.crediya.model.application.ApplicationForReview;
 import co.com.crediya.model.auth.AuthUser;
 import co.com.crediya.usecase.Review.ListApplicationsForReviewUseCase;
 import co.com.crediya.usecase.Review.ListPendingApplicationsUseCase;
@@ -12,6 +13,7 @@ import co.com.crediya.usecase.registerapplication.RegisterApplicationUseCase;
 import jakarta.validation.Validator;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Component;
@@ -53,40 +55,28 @@ public class Handler {
     }
 
     public Mono<ServerResponse> listForReview(ServerRequest request) {
-        String bearerToken = request.headers().firstHeader("Authorization");
-        if (bearerToken == null || !bearerToken.startsWith("Bearer ")) {
-            return ServerResponse.status(HttpStatus.UNAUTHORIZED).build();
+        String bearerToken = request.headers().firstHeader(HttpHeaders.AUTHORIZATION);
+
+        // valores por defecto
+        int page = request.queryParam("page").map(Integer::parseInt).orElse(0);
+        int size = request.queryParam("size").map(Integer::parseInt).orElse(10);
+
+        // lista de estados filtrados (si no mandan, usamos defaults)
+        List<String> estados = request.queryParams().get("estados");
+        if (estados == null || estados.isEmpty()) {
+            estados = List.of("Pendiente de revisión", "Rechazadas", "Revision manual");
         }
 
-        int page = Integer.parseInt(request.queryParam("page").orElse("0"));
-        int size = Integer.parseInt(request.queryParam("size").orElse("20"));
-        List<String> estados = request.queryParam("estados")
-                .map(s -> Arrays.asList(s.split(",")))
-                .orElse(List.of("Pendiente de revisión", "Rechazadas", "Revision manual"));
-
         return listApplicationsForReviewUseCase.listForUser(bearerToken, estados, page, size)
-                .flatMap(result -> {
-                    List<ApplicationListItemResponse> items = result.items().stream()
-                            .map(applicationMapper::toListItemResponse)
-                            .toList();
-
-                    PagedResponse<ApplicationListItemResponse> response =
-                            PagedResponse.<ApplicationListItemResponse>builder()
-                                    .items(items)
-                                    .total(result.total())
-                                    .page(result.page())
-                                    .size(result.size())
-                                    .build();
-
-                    return ServerResponse.ok()
-                            .contentType(MediaType.APPLICATION_JSON)
-                            .bodyValue(response);
-                })
-                .onErrorResume(IllegalArgumentException.class, e ->
-                        ServerResponse.status(HttpStatus.FORBIDDEN)
-                                .contentType(MediaType.APPLICATION_JSON)
-                                .bodyValue(Map.of("status", 403, "error", "forbidden", "message", e.getMessage()))
-                );
+                .flatMap(result -> ServerResponse.ok()
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .bodyValue(PagedResponse.<ApplicationForReview>builder()
+                                .items(result.items())
+                                .total(result.total())
+                                .page(result.page())
+                                .size(result.size())
+                                .build()
+                        ));
     }
 
     public Mono<ServerResponse> listAllPending(ServerRequest request) {

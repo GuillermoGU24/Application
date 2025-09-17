@@ -44,6 +44,10 @@ public class ListApplicationsForReviewUseCase {
                                                     app.setEmail(user.getEmail());
                                                     app.setSalarioBase(user.getBaseSalary() != null ? user.getBaseSalary().longValue() : null);
                                                 }
+                                                if (app.getMonto() != null && app.getPlazo() != null && app.getPlazo() > 0) {
+                                                    double mensual = app.getMonto() / app.getPlazo();
+                                                    app.setMontoMensualSolicitud(mensual);
+                                                }
                                             });
                                             return new PagedResult<>(apps, total, page, size);
                                         });
