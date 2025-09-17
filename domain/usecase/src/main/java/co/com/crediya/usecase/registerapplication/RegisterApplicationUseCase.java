@@ -1,6 +1,8 @@
 package co.com.crediya.usecase.registerapplication;
 
 import co.com.crediya.model.application.Application;
+import co.com.crediya.model.application.LoanType;
+import co.com.crediya.model.application.State;
 import co.com.crediya.model.application.exeption.LoanDomainValidator;
 import co.com.crediya.model.application.gateways.ApplicationRepository;
 import co.com.crediya.model.application.gateways.IdentityGateway;
@@ -21,21 +23,35 @@ public class RegisterApplicationUseCase {
     public Mono<Application> register(Application app, String bearerToken) {
         return identityGateway.findAuthUserByToken(bearerToken)
                 .flatMap(authUser -> {
-
-                    if ("CLIENTE".equals(authUser.getRol().getName()) && !authUser.getDocument().equals(app.getDocument())) {
-                        return Mono.error(new IllegalArgumentException("forbidden: Cannot create application for another user"));
+                    if ("CLIENTE".equals(authUser.getRol().getName()) &&
+                            !authUser.getDocument().equals(app.getDocument())) {
+                        return Mono.error(new IllegalArgumentException(
+                                "forbidden: Cannot create application for another user"));
                     }
 
-                    app.setStateId(1L);
+                    // Creamos internamente el state
+                    State state = new State();
+                    state.setStateId(1L); // pendiente
+                    app.setState(state);
 
-                    return loanTypeRepository.findById(app.getLoanTypeId())
+                    // Validamos que LoanType tenga ID
+                    if (app.getLoanType() == null || app.getLoanType().getLoanTypeId() == null) {
+                        return Mono.error(new IllegalArgumentException("loanTypeId is required"));
+                    }
+
+                    // Buscamos LoanType completo
+                    return loanTypeRepository.findById(app.getLoanType().getLoanTypeId())
                             .switchIfEmpty(Mono.error(new IllegalArgumentException("loanTypeId: Loan type not found")))
                             .flatMap(loanType -> {
                                 LoanDomainValidator.validate(app, loanType);
+
+                                // asignamos el LoanType completo al app
+                                app.setLoanType(loanType);
+
                                 return applicationRepository.save(app);
                             });
                 });
-
-
     }
+
+
 }

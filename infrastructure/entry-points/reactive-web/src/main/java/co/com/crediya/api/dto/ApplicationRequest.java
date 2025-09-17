@@ -19,4 +19,5 @@ public class ApplicationRequest {
 
     @NotNull(message = "Loan type is required")
     private Long loanTypeId;
+
 }

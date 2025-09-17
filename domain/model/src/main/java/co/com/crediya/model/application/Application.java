@@ -14,6 +14,6 @@ public class Application {
     private Double amount;
     private Integer term;
     private String document;
-    private Long stateId;
-    private Long loanTypeId;
+    private State state;
+    private LoanType loanType;
 }
