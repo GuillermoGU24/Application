@@ -32,26 +32,27 @@ public class ListApplicationsForReviewUseCase {
                                 List<ApplicationForReview> apps = tuple.getT1();
                                 long total = tuple.getT2();
 
-                                List<String> documents = apps.stream().map(ApplicationForReview::getDocumento).toList();
+                                List<String> documents = apps.stream().map(ApplicationForReview::getDocument).toList();
 
                                 return userGateway.findUsersByDocuments(documents, bearerToken)
                                         .collectMap(User::getDocument)
                                         .map(usersMap -> {
                                             apps.forEach(app -> {
-                                                User user = usersMap.get(app.getDocumento());
+                                                User user = usersMap.get(app.getDocument());
                                                 if (user != null) {
-                                                    app.setNombreCompleto(user.getName() + " " + user.getLastName());
+                                                    app.setFullName(user.getName() + " " + user.getLastName());
                                                     app.setEmail(user.getEmail());
-                                                    app.setSalarioBase(user.getBaseSalary() != null ? user.getBaseSalary().longValue() : null);
+                                                    app.setBaseSalary(user.getBaseSalary() != null ? user.getBaseSalary().longValue() : null);
                                                 }
-                                                if (app.getMonto() != null && app.getPlazo() != null && app.getPlazo() > 0) {
-                                                    double mensual = app.getMonto() / app.getPlazo();
-                                                    app.setMontoMensualSolicitud(mensual);
+                                                if (app.getAmount() != null && app.getTerm() != null && app.getTerm() > 0) {
+                                                    double monthly = app.getAmount() / app.getTerm();
+                                                    app.setMonthlyApplicationAmount(monthly);
                                                 }
                                             });
                                             return new PagedResult<>(apps, total, page, size);
                                         });
                             });
+
 
                 });
     }

@@ -20,30 +20,31 @@ public class ListPendingApplicationsUseCase {
         return applicationRepository.findByStateId(1L).collectList()
                 .flatMap(apps -> {
                     List<String> documents = apps.stream()
-                            .map(ApplicationForReview::getDocumento) // ✅ ahora usamos el campo correcto
+                            .map(ApplicationForReview::getDocument)
                             .distinct()
                             .toList();
 
                     return userGateway.findUsersByDocuments(documents, bearerToken)
                             .collectMap(User::getDocument)
                             .map(usersMap -> apps.stream().map(app -> {
-                                User user = usersMap.get(app.getDocumento());
+                                User user = usersMap.get(app.getDocument());
                                 return ApplicationForReview.builder()
                                         .applicationId(app.getApplicationId())
-                                        .monto(app.getMonto())
-                                        .plazo(app.getPlazo())
-                                        .documento(app.getDocumento())
-                                        .tipoPrestamo(app.getTipoPrestamo())
-                                        .tasaInteres(app.getTasaInteres())
-                                        .estadoSolicitud(app.getEstadoSolicitud())
-                                        .nombreCompleto(user != null ? user.getName() + " " + user.getLastName() : null)
+                                        .amount(app.getAmount())
+                                        .term(app.getTerm())
+                                        .document(app.getDocument())
+                                        .loanType(app.getLoanType())
+                                        .interestRate(app.getInterestRate())
+                                        .applicationStatus(app.getApplicationStatus())
+                                        .fullName(user != null ? user.getName() + " " + user.getLastName() : null)
                                         .email(user != null ? user.getEmail() : null)
-                                        .salarioBase(user != null ?
+                                        .baseSalary(user != null ?
                                                 (user.getBaseSalary() != null ? user.getBaseSalary().longValue() : null)
                                                 : null)
                                         .build();
                             }).toList());
                 });
+
     }
 }
 

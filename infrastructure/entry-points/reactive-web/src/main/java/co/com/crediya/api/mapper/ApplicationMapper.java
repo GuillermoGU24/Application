@@ -19,7 +19,6 @@ public interface ApplicationMapper {
         app.setTerm(request.getTerm());
         app.setDocument(request.getDocument());
 
-        // Creamos el LoanType solo con el ID
         LoanType loanType = new LoanType();
         loanType.setLoanTypeId(request.getLoanTypeId());
         app.setLoanType(loanType);

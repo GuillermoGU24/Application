@@ -7,15 +7,15 @@ import lombok.Data;
 @Builder
 public class ApplicationForReview {
     private Long applicationId;
-    private Double monto;
-    private Integer plazo;
-    private String documento;
-    private String nombreCompleto;
+    private Double amount;
+    private Integer term;
+    private String document;
+    private String fullName;
     private String email;
-    private String tipoPrestamo;
-    private Double tasaInteres;
-    private String estadoSolicitud;
-    private Long salarioBase;
-    private Double montoMensualSolicitud; // <--- nuevo
+    private String loanType;
+    private Double interestRate;
+    private String applicationStatus;
+    private Long baseSalary;
+    private Double monthlyApplicationAmount; 
 }
 

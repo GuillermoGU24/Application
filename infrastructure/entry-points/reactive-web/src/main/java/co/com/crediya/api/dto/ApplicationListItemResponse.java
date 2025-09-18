@@ -8,12 +8,12 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @NoArgsConstructor
 public class ApplicationListItemResponse {
-    private Double monto;
-    private Integer plazo;
+    private Double amount;
+    private Integer term;
     private String email;
-    private String nombre;
-    private String tipoPrestamo;
-    private Double tasaInteres;
-    private String estadoSolicitud;
-    private Double salarioBase;
+    private String firstName;
+    private String loanType;
+    private Double interestRate;
+    private String applicationStatus;
+    private Double baseSalary;
 }

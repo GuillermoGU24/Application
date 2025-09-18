@@ -86,13 +86,13 @@ public class Handler {
                     .bodyValue(Map.of("status", 401, "message", "Missing Bearer token"));
         }
 
-        log.info("Listando todas las solicitudes con estado = 1 (pendientes)");
+        log.info("Listing all applications with status = 1 (pending)");
 
         return listPendingApplicationsUseCase.listAllPending(bearerToken)
                 .flatMap(apps -> ServerResponse.ok()
                         .contentType(MediaType.APPLICATION_JSON)
                         .bodyValue(apps))
-                .doOnError(e -> log.error("Error listando pendientes: {}", e.getMessage(), e))
+                .doOnError(e -> log.error("Error list state pending: {}", e.getMessage(), e))
                 .onErrorResume(e -> ServerResponse.status(HttpStatus.BAD_REQUEST)
                         .bodyValue(Map.of("status", 400, "message", e.getMessage())));
     }
