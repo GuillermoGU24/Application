@@ -27,16 +27,16 @@ cors:
 
 adapter:
   r2dbc:
-    host: "localhost"
-    port: 5432
-    database: "solicitudes_db"
+    host: ${DB_HOST:localhost}
+    port: ${DB_PORT:5432}
+    database: ${DB_NAME:application_db}
     schema: "public"
-    username: postgres
-    password: postgres
+    username: ${DB_USER:postgres}
+    password: ${DB_PASS:postgres}
 
 auth:
-  base-url: http://localhost:8080
+  base-url: ${AUTH_SERVICE_URL:http://localhost:8080}
 
 jwt:
- secret-base64: ${JWT_SECRET_BASE64:VGhpcy1pcy1hLWRlZmF1bHQtc2VjcmV0LWtleS1iYXNlNjQ=}
- ttl-seconds: 3600
+  secret-base64: ${JWT_SECRET_BASE64:VGhpcy1pcy1hLWRlZmF1bHQtc2VjcmV0LWtleS1iYXNlNjQ=}
+  ttl-seconds: 3600
